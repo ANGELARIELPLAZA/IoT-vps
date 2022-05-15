@@ -1,0 +1,154 @@
+comuan.ga:8083 vesta
+comuan.ga:18083 emqx
+
+#registrar un dominio gratuito
+https://my.freenom.com/domains.php
+#hacemos una instancia gratuita en aws
+ubuntu 16.8 
+#Puertos que abrimos cuando creamos la instancia:
+SSH 22
+FTP 21
+HTTP 80
+HTTPS 443
+VESTA 8083
+#creamos ip elastica
+18.230.9.111
+
+#iniciamos sesion en vps por terminal
+sudo apt update
+sudo apt upgrade
+
+sudo su
+cd .. #home/
+cd .. #/
+
+#instalamos vesta panel 
+# Descargar script de instalación
+curl -O http://vestacp.com/pub/vst-install.sh
+
+
+#Editar con el nombre del dominio de freenom
+#Ejecutar instalación sin servidor de correos
+bash vst-install.sh --nginx yes --apache yes --phpfpm no --named yes --remi yes --vsftpd yes --proftpd no --iptables yes --fail2ban yes --quota no --exim no --dovecot no --spamassassin no --clamav no --softaculous no --mysql yes --postgresql no --hostname comuan.ga --email anllelo13.plaza@gmail.com --password 121212 -f
+
+#vinculamos dominio con vps ip estatica
+     ttl 3600  A ip_estatica
+www  ttl 3600  cname nombre_del_dominio
+
+#dnscheker
+https://dnschecker.org/#CNAME/www.comuan.ga
+https://dnschecker.org/#A/comuan.ga
+
+#abrimos VESTAPANEL EN EL NAVEGADOR
+#WEB>EDITAR
+#SELECCIONAR SSL Support  Y Lets Encrypt Support
+#Y GUARDAMOS
+
+#Additional FTP
+Username: admin_cursoiot
+Password: 121212
+Path:/public_html
+Send login credentials to email address: anllelo13.plaza@gmail.com
+
+#instalar certificados
+sudo su
+cd ..
+cd ..
+cd usr/local/vesta/ssl 
+ls
+rm certificate.crt
+rm certificate.key
+cd 
+cd ..
+
+*******
+3 para darle ssl al panel
+*******
+ln -s /home/admin/conf/web/ssl.comuan.ga.crt /usr/local/vesta/ssl/certificate.crt
+ln -s /home/admin/conf/web/ssl.comuan.ga.key /usr/local/vesta/ssl/certificate.key
+service vesta restart
+exit
+
+****
+ 4
+****
+Puertos a abrir tanto en firewall de vesta como en aws
+1883,8883,8093,8094,8090,18083,8080,27017
+***
+5
+***
+Descargar y descomprimir emqx
+sudo su
+cd ..
+cd ..
+wget https://www.emqx.com/en/downloads/broker/3.0.1/emqx-ubuntu16.04-v3.0.1.zip
+unzip emqx-ubuntu16.04-v3.0.1.zip
+cd emqx/etc
+##descargar de github(pendiente)
+nano emqx.conf
+#editamos puertos ws  8083 - 8093
+#editamos puertos wss 8084 - 8094
+cd plugin
+##descargar de github(pendiente)
+nano emqx_management.conf
+#editar puerto 8080 - 8090
+cd ..
+cd ..
+./bin/emqx start
+
+*****
+6 Para wss
+****
+#cd/
+cd
+cd ..
+rm /emqx/etc/certs/cert.pem
+rm /emqx/etc/certs/key.pem
+
+ln -s /home/admin/conf/web/ssl.comuan.ga.crt /emqx/etc/certs/cert.pem
+ln -s /home/admin/conf/web/ssl.comuan.ga.key /emqx/etc/certs/key.pem
+#notaaaaaaaaa dejar 10 min o mas para que se validen los certificados
+
+
+#instalar mongo db
+#Adding the MongoDB Repository
+#cd /
+#su
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+apt-get update
+
+#Installing and Verifying MongoDB
+apt-get install -y mongodb-org
+systemctl start mongod
+systemctl status mongod
+systemctl enable mongod
+
+#usuario
+mongo
+use admin
+db.createUser({user:"admin_cursoiot", pwd:"121212", roles:[{role:"root", db:"admin"}]})
+https://www.rosehosting.com/blog/how-to-install-mongodb-on-ubuntu-16-04/
+
+#conectar con mongo compas
+
+
+#instalar nodejs
+sudo apt-get update
+sudo apt-get install nodejs
+sudo apt-get install nodejs-legacy
+sudo apt-get install npm
+node -v
+npm -v
+cd ~
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+source ~/.bashrc
+nvm list-remote
+nvm install v14.0.0
+
+#instalar servidor
+sudo su
+cd /home/admin/web/comuan.ga/public_html/admin/node
+node index.js
+

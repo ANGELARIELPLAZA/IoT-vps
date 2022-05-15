@@ -1,0 +1,11 @@
+{
+  "name": "Iot_value",
+  "version": "1.0.0",
+  "description": "Proyecto_innovatec",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Angel_Ariel_Plaza_Acuña",
+  "license": "MIT"
+}
